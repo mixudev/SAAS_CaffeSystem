@@ -405,8 +405,7 @@ export default function LandingPage() {
           className="section-padding"
           style={{
             background: 'var(--surface-plum-deep)',
-            width: '100vw',
-            marginLeft: 'calc(-50vw + 50%)',
+            width: '100%',
             position: 'relative',
             overflow: 'hidden',
             textAlign: 'center',

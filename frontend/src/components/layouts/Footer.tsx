@@ -27,19 +27,7 @@ export default function Footer() {
           CAFFE
         </div>
 
-        <div
-          style={{
-            display: 'flex',
-            gap: 'var(--spacing-24)',
-            fontSize: '14px',
-            color: 'var(--color-steel)',
-          }}
-        >
-          <a href="#features" style={{ color: 'inherit' }}>Fitur</a>
-          <a href="#solutions" style={{ color: 'inherit' }}>Solusi</a>
-          <a href="#pricing" style={{ color: 'inherit' }}>Harga</a>
-          <a href="#contact" style={{ color: 'inherit' }}>Kontak</a>
-        </div>
+
 
         <p
           style={{

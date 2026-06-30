@@ -49,50 +49,59 @@ export default function Navbar() {
           CAFFE
         </Link>
 
-        {/* Nav Links */}
+        {/* Nav Links + CTAs (right side) */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 'var(--spacing-24)',
+            gap: 'var(--spacing-32)',
           }}
         >
-          {navLinks.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              style={{
-                fontSize: '15px',
-                fontWeight: 400,
-                lineHeight: 1.2,
-                color: 'var(--color-midnight-plum)',
-                textDecoration: 'none',
-                transition: 'color 0.2s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = 'var(--color-aubergine-core)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'var(--color-midnight-plum)'
-              }}
-            >
-              {link.label}
-            </a>
-          ))}
-        </div>
+          {/* Nav Links */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 'var(--spacing-24)',
+            }}
+          >
+            {navLinks.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                style={{
+                  fontSize: '15px',
+                  fontWeight: 400,
+                  lineHeight: 1.2,
+                  color: 'var(--color-midnight-plum)',
+                  textDecoration: 'none',
+                  transition: 'color 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'var(--color-aubergine-core)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'var(--color-midnight-plum)'
+                }}
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
 
-        {/* CTAs */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-12)' }}>
-          <Link to="/login">
-            <GhostButton style={{ padding: '10px 20px', fontSize: '14px' }}>
-              Masuk
-            </GhostButton>
-          </Link>
-          <a href="#cta">
-            <PrimaryButton style={{ padding: '10px 20px', fontSize: '14px' }}>
-              Coba Gratis
-            </PrimaryButton>
-          </a>
+          {/* CTAs */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-12)' }}>
+            <Link to="/login">
+              <GhostButton style={{ padding: '10px 20px', fontSize: '14px' }}>
+                Masuk
+              </GhostButton>
+            </Link>
+            <a href="#cta">
+              <PrimaryButton style={{ padding: '10px 20px', fontSize: '14px' }}>
+                Coba Gratis
+              </PrimaryButton>
+            </a>
+          </div>
         </div>
       </div>
     </nav>
