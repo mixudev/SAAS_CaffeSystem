@@ -41,6 +41,9 @@ RUN install-php-extensions \
 # Copy custom php.ini configuration
 COPY docker/backend/php.ini /usr/local/etc/php/conf.d/custom.ini
 
+# Copy opcache preload script
+COPY docker/backend/opcache-preload.php /usr/local/etc/php/opcache-preload.php
+
 # Use the default production configuration
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
