@@ -1,0 +1,17 @@
+services:
+  # Vite dev server dengan volume mount — hot reload tanpa rebuild
+  react-app-dev:
+    image: node:20-alpine
+    container_name: cafe-frontend-dev
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "5173:5173"
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+    networks:
+      - cafe-network
+    restart: unless-stopped
+    environment:
+      - CHOKIDAR_USEPOLLING=1
+      - WATCHPACK_POLLING=true

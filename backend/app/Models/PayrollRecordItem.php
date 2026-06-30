@@ -1,0 +1,20 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class PayrollRecordItem extends Model
+{
+    protected $fillable = ['payroll_record_id', 'type', 'label', 'amount', 'notes'];
+
+    protected $casts = [
+        'amount' => 'decimal:2',
+    ];
+
+    public function payrollRecord(): BelongsTo
+    {
+        return $this->belongsTo(PayrollRecord::class);
+    }
+}
