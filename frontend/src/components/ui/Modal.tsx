@@ -82,6 +82,17 @@ const ModalFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
 )
 ModalFooter.displayName = 'ModalFooter'
 
+const Dialog = Modal
+const DialogTrigger = ModalTrigger
+const DialogClose = ModalClose
+const DialogPortal = ModalPortal
+const DialogOverlay = ModalOverlay
+const DialogContent = ModalContent
+const DialogHeader = ModalHeader
+const DialogFooter = ModalFooter
+const DialogTitle = ModalTitle
+const DialogDescription = ModalDescription
+
 export {
   Modal,
   ModalPortal,
@@ -93,4 +104,14 @@ export {
   ModalFooter,
   ModalTitle,
   ModalDescription,
+  Dialog,
+  DialogTrigger,
+  DialogClose,
+  DialogPortal,
+  DialogOverlay,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
 }

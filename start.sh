@@ -62,6 +62,12 @@ fi
 
 echo "[2/8] Starting Docker (dev profile)..."
 
+# Swap nginx config: use dev-default.conf (proxies to Vite HMR server)
+if [ -f nginx/conf.d/default.conf ] && [ -f nginx/conf.d/dev-default.conf ]; then
+    cp nginx/conf.d/default.conf nginx/conf.d/default.conf.prod.bak
+    cp nginx/conf.d/dev-default.conf nginx/conf.d/default.conf
+fi
+
 docker compose $COMPOSE_FILES --profile dev up -d
 
 #############################################

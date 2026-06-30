@@ -1,12 +1,4 @@
 services:
-  # Nginx development override to mount dev-default.conf
-  nginx:
-    volumes:
-      - type: bind
-        source: ./nginx/conf.d/dev-default.conf
-        target: /etc/nginx/conf.d/default.conf
-        read_only: true
-
   # Vite dev server dengan volume mount — hot reload tanpa rebuild
   react-app-dev:
     image: node:20-alpine

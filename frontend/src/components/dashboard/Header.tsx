@@ -1,7 +1,5 @@
-import { useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
-import { Avatar, AvatarFallback } from '../ui/Avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/Avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,73 +7,43 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/DropdownMenu'
+import { Input } from '../ui/Input'
+import { Separator } from '../ui/Separator'
+import { Badge } from '../ui/Badge'
 import {
-  Alert,
-  AlertAction,
-  AlertCancel,
-  AlertContent,
-  AlertDescription,
-  AlertFooter,
-  AlertHeader,
-  AlertTitle,
-  AlertTrigger,
-} from '../ui/Alert'
-import { LogOut, Menu, User, Bell, ChevronDown, Clock, Store } from 'lucide-react'
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '../ui/Tooltip'
+import { useState } from 'react'
+import {
+  Search,
+  Calendar,
+  Moon,
+  Sun,
+  Bell,
+  ChevronDown,
+  User,
+  Settings,
+  LogOut,
+  Menu,
+} from 'lucide-react'
 
-const routeLabels: Record<string, string> = {
-  '/dashboard': 'Overview',
-  '/dashboard/pos': 'Point of Sale',
-  '/dashboard/inventory': 'Inventaris',
-  '/dashboard/hr': 'Manajemen Karyawan',
-  '/dashboard/reports': 'Laporan & Analitik',
-  '/dashboard/users': 'Pengguna',
+interface Props {
+  onSidebarOpen: () => void
+  onLogoutOpen: () => void
 }
 
-// Determine greeting by hour
-function getGreeting() {
-  const hour = new Date().getHours()
-  if (hour < 11) return 'Selamat pagi'
-  if (hour < 15) return 'Selamat siang'
-  if (hour < 18) return 'Selamat sore'
-  return 'Selamat malam'
-}
+export default function Header({ onSidebarOpen, onLogoutOpen }: Props) {
+  const { user } = useAuth()
+  const [darkMode, setDarkMode] = useState(false)
 
-// Get current shift
-function getShift() {
-  const hour = new Date().getHours()
-  if (hour >= 7 && hour < 15) return { label: 'Shift Pagi', color: '#F59E0B', bg: '#FEF3C7' }
-  if (hour >= 15 && hour < 23) return { label: 'Shift Siang', color: '#6D28D9', bg: '#EDE9FE' }
-  return { label: 'Shift Malam', color: '#6B7280', bg: '#F3F4F6' }
-}
-
-// Format date in Indonesian
-function formatDate() {
-  return new Date().toLocaleDateString('id-ID', {
+  const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   })
-}
-
-const outlets = ['Outlet Utama', 'Outlet Selatan', 'Outlet Timur']
-
-interface Props {
-  onSidebarOpen: () => void
-}
-
-export default function Header({ onSidebarOpen }: Props) {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
-  const location = useLocation()
-  const [alertOpen, setAlertOpen] = useState(false)
-  const [selectedOutlet, setSelectedOutlet] = useState(outlets[0])
-  const [notifOpen, setNotifOpen] = useState(false)
-
-  const handleLogout = async () => {
-    await logout()
-    navigate('/login')
-  }
 
   const initials = user?.name
     ?.split(' ')
@@ -84,172 +52,126 @@ export default function Header({ onSidebarOpen }: Props) {
     .toUpperCase()
     .slice(0, 2) ?? 'U'
 
-  const shift = getShift()
-  const isOverview = location.pathname === '/dashboard'
-
   return (
-    <header
-      className="shrink-0 border-b"
-      style={{
-        background: '#ffffff',
-        borderColor: '#E5E7EB',
-        boxShadow: '0 1px 0 rgba(0,0,0,0.04)',
-      }}
-    >
-      {/* ── Main Header Row ── */}
-      <div className="flex h-[64px] items-center justify-between px-6 lg:px-8">
+    <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b border-slate-200 bg-white/80 px-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] backdrop-blur-sm">
+      {/* Left: mobile hamburger + search */}
+      <div className="flex items-center gap-4 flex-1 max-w-md">
+        <button
+          onClick={onSidebarOpen}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors lg:hidden hover:bg-slate-100"
+          aria-label="Buka sidebar"
+        >
+          <Menu className="h-5 w-5 text-slate-600" />
+        </button>
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Input
+            placeholder="Search orders, menu, customers..."
+            className="pl-9 pr-10 bg-slate-50 border-slate-200 rounded-xl focus-visible:ring-emerald-500 h-10"
+          />
+          <kbd className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none hidden sm:inline-flex h-5 items-center gap-1 rounded-md border border-slate-200 bg-white px-1.5 text-[10px] font-medium text-slate-400 shadow-sm">
+            ⌘K
+          </kbd>
+        </div>
+      </div>
 
-        {/* Left: Hamburger + Greeting (Overview) or Page Title */}
-        <div className="flex items-center gap-4 min-w-0">
-          {/* Mobile hamburger */}
-          <button
-            onClick={onSidebarOpen}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors lg:hidden"
-            style={{ background: '#F6F7FB' }}
-            aria-label="Buka sidebar"
-          >
-            <Menu className="h-5 w-5 text-neutral-600" />
-          </button>
+      {/* Right: date, theme, notif, user */}
+      <div className="flex items-center gap-2">
+        <div className="hidden lg:flex items-center gap-2 text-sm text-slate-500 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200">
+          <Calendar className="h-4 w-4" />
+          {today}
+        </div>
 
-          {isOverview ? (
-            /* Greeting section */
-            <div className="min-w-0">
-              <h1
-                className="font-display font-bold leading-tight truncate"
-                style={{ fontSize: 20, color: '#111827' }}
-              >
-                {getGreeting()}, {user?.name?.split(' ')[0]} ☕
-              </h1>
-              <div className="flex items-center gap-2 mt-0.5">
-                <Clock className="h-3 w-3 text-neutral-400" />
-                <p className="text-[12px] text-neutral-400">{formatDate()}</p>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+            >
+              {darkMode ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Toggle theme</TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button className="relative flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+              <Bell className="h-[18px] w-[18px]" />
+              <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-amber-500 ring-2 ring-white" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Notifications</TooltipContent>
+        </Tooltip>
+
+        <Separator orientation="vertical" className="h-8 mx-1" />
+
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-2.5 rounded-xl pl-2 pr-2.5 py-1.5 hover:bg-slate-100 transition-colors duration-200 group">
+                <div className="relative shrink-0">
+                  <Avatar className="h-9 w-9 ring-2 ring-emerald-100">
+                    <AvatarImage src="" alt={user?.name ?? 'User'} />
+                    <AvatarFallback className="bg-gradient-to-br from-emerald-600 to-stone-800 text-white text-sm font-semibold">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-500" />
+                </div>
+                <div className="hidden md:flex flex-col items-start">
+                  <span className="text-sm font-semibold leading-tight text-slate-900">
+                    {user?.name ?? 'User'}
+                  </span>
+                  <span className="text-[11px] text-slate-500 leading-tight">{user?.roles?.[0] ?? 'Owner'}</span>
+                </div>
+                <ChevronDown className="hidden md:block h-4 w-4 text-slate-400 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+              </button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent align="end" className="w-64 rounded-xl p-0 overflow-hidden">
+              <div className="flex items-center gap-3 px-4 py-3.5 bg-gradient-to-br from-emerald-50 to-white">
+                <div className="relative shrink-0">
+                  <Avatar className="h-11 w-11 ring-2 ring-white shadow-sm">
+                    <AvatarFallback className="bg-gradient-to-br from-emerald-600 to-stone-800 text-white font-semibold">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 ring-1 ring-emerald-300" />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-sm font-semibold text-slate-900 truncate">{user?.name}</span>
+                  <span className="text-xs text-slate-500 truncate">{user?.email}</span>
+                  <Badge
+                    variant="outline"
+                    className="mt-1 w-fit text-[10px] px-1.5 py-0 h-4 border-emerald-200 text-emerald-700 bg-emerald-50"
+                  >
+                    {user?.roles?.[0] ?? 'Owner'}
+                  </Badge>
               </div>
             </div>
-          ) : (
-            <h1
-              className="font-display font-bold truncate"
-              style={{ fontSize: 20, color: '#111827' }}
-            >
-              {routeLabels[location.pathname] ?? 'Dashboard'}
-            </h1>
-          )}
-        </div>
-
-        {/* Right: Outlet + Shift + Notif + User */}
-        <div className="flex items-center gap-2 shrink-0">
-
-          {/* Current Shift Badge */}
-          <div
-            className="hidden sm:flex items-center gap-1.5 rounded-full px-3 h-8"
-            style={{ background: shift.bg }}
-          >
-            <span
-              className="h-1.5 w-1.5 rounded-full animate-pulse"
-              style={{ background: shift.color }}
-            />
-            <span className="text-[12px] font-semibold" style={{ color: shift.color }}>
-              {shift.label}
-            </span>
-          </div>
-
-          {/* Outlet Selector */}
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              className="hidden md:flex items-center gap-1.5 rounded-xl px-3 h-9 text-[13px] font-medium transition-colors focus:outline-none"
-              style={{ background: '#F6F7FB', color: '#374151', border: '1px solid #E5E7EB' }}
-            >
-              <Store className="h-3.5 w-3.5 text-neutral-400" />
-              <span>{selectedOutlet}</span>
-              <ChevronDown className="h-3.5 w-3.5 text-neutral-400" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              {outlets.map((o) => (
-                <DropdownMenuItem
-                  key={o}
-                  onClick={() => setSelectedOutlet(o)}
-                  className={selectedOutlet === o ? 'bg-primary-light text-primary' : ''}
-                >
-                  <Store className="h-4 w-4" />
-                  {o}
+              <DropdownMenuSeparator className="m-0" />
+              <div className="p-1.5">
+                <DropdownMenuItem className="gap-2.5 py-2.5 rounded-lg cursor-pointer">
+                  <User className="h-4 w-4 text-slate-500" />
+                  Profile
                 </DropdownMenuItem>
-              ))}
+                <DropdownMenuItem className="gap-2.5 py-2.5 rounded-lg cursor-pointer">
+                  <Settings className="h-4 w-4 text-slate-500" />
+                  Account Settings
+                </DropdownMenuItem>
+              </div>
+              <DropdownMenuSeparator className="m-0" />
+              <div className="p-1.5">
+                <DropdownMenuItem
+                  onSelect={(e) => { e.preventDefault(); onLogoutOpen() }}
+                  className="gap-2.5 py-2.5 rounded-lg cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </DropdownMenuItem>
+              </div>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          {/* Divider */}
-          <div className="hidden sm:block h-6 w-px mx-1" style={{ background: '#E5E7EB' }} />
-
-          {/* Notifications */}
-          <button
-            onClick={() => setNotifOpen(!notifOpen)}
-            className="relative flex h-10 w-10 items-center justify-center rounded-xl transition-colors focus:outline-none"
-            style={{ background: notifOpen ? '#F6F7FB' : 'transparent' }}
-            title="Notifikasi"
-          >
-            <Bell className="h-5 w-5" style={{ color: '#6B7280' }} />
-            {/* Notification dot */}
-            <span
-              className="absolute right-2 top-2 flex h-2 w-2 items-center justify-center rounded-full"
-              style={{ background: '#EF4444', boxShadow: '0 0 0 2px white' }}
-            />
-          </button>
-
-          {/* User menu */}
-          <Alert open={alertOpen} onOpenChange={setAlertOpen}>
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                className="flex items-center gap-2.5 rounded-xl px-2.5 h-10 transition-colors focus:outline-none"
-                style={{ background: '#F6F7FB', border: '1px solid #E5E7EB' }}
-              >
-                <Avatar className="h-7 w-7">
-                  <AvatarFallback className="text-[11px]">{initials}</AvatarFallback>
-                </Avatar>
-                <span
-                  className="hidden sm:block text-[13px] font-semibold leading-none max-w-[100px] truncate"
-                  style={{ color: '#111827' }}
-                >
-                  {user?.name?.split(' ')[0]}
-                </span>
-                <ChevronDown className="hidden sm:block h-3.5 w-3.5" style={{ color: '#9CA3AF' }} />
-              </DropdownMenuTrigger>
-
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="px-3 py-3">
-                  <p className="text-[13px] font-bold" style={{ color: '#111827' }}>{user?.name}</p>
-                  <p className="text-[11px] mt-0.5" style={{ color: '#6B7280' }}>{user?.email}</p>
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate('/dashboard')}>
-                  <User className="h-4 w-4" />
-                  Profil Saya
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <AlertTrigger asChild>
-                  <DropdownMenuItem
-                    onSelect={(e) => e.preventDefault()}
-                    className="text-danger focus:text-danger focus:bg-danger-light"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Keluar
-                  </DropdownMenuItem>
-                </AlertTrigger>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <AlertContent>
-              <AlertHeader>
-                <AlertTitle>Konfirmasi Keluar</AlertTitle>
-                <AlertDescription>
-                  Apakah Anda yakin ingin keluar? Sesi aktif Anda akan diakhiri.
-                </AlertDescription>
-              </AlertHeader>
-              <AlertFooter>
-                <AlertCancel>Batal</AlertCancel>
-                <AlertAction onClick={handleLogout}>Ya, Keluar</AlertAction>
-              </AlertFooter>
-            </AlertContent>
-          </Alert>
-        </div>
       </div>
     </header>
   )
