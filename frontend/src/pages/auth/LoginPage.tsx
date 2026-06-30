@@ -1,23 +1,42 @@
 import { useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, Navigate } from 'react-router-dom'
 import AuthLayout from '../../components/layouts/AuthLayout'
 import InputField from '../../components/common/InputField'
 import PrimaryButton from '../../components/common/PrimaryButton'
+import { useAuth } from '../../contexts/AuthContext'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
+  const [loginInput, setLoginInput] = useState('')
   const [password, setPassword] = useState('')
-  const [remember, setRemember] = useState(false)
   const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const { login, user, loading } = useAuth()
+  const navigate = useNavigate()
 
-  const handleSubmit = (e: FormEvent) => {
+  if (loading) return null
+  if (user) return <Navigate to="/dashboard" replace />
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!email || !password) {
-      setError('Silakan isi email dan kata sandi')
+    if (!loginInput || !password) {
+      setError('Silakan isi email/username dan kata sandi')
       return
     }
     setError('')
-    // TODO: Integrate with API
+    setSubmitting(true)
+    try {
+      await login(loginInput, password)
+      navigate('/dashboard', { replace: true })
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosErr = err as { response?: { data?: { message?: string } } }
+        setError(axiosErr.response?.data?.message || 'Terjadi kesalahan')
+      } else {
+        setError('Terjadi kesalahan')
+      }
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -85,11 +104,11 @@ export default function LoginPage() {
         )}
 
         <InputField
-          label="Email"
-          type="email"
-          placeholder="nama@email.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          label="Email atau Username"
+          type="text"
+          placeholder="nama@email.com atau username"
+          value={loginInput}
+          onChange={(e) => setLoginInput(e.target.value)}
         />
 
         <InputField
@@ -100,48 +119,13 @@ export default function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
         />
 
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
+        <PrimaryButton
+          type="submit"
+          fullWidth
+          style={{ padding: '14px 24px' }}
+          disabled={submitting}
         >
-          <label
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--spacing-8)',
-              fontSize: '14px',
-              color: 'var(--color-graphite)',
-              cursor: 'pointer',
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={remember}
-              onChange={(e) => setRemember(e.target.checked)}
-              style={{
-                width: 16,
-                height: 16,
-                accentColor: 'var(--color-aubergine-core)',
-              }}
-            />
-            Ingat saya
-          </label>
-          <a
-            href="#"
-            style={{
-              fontSize: '14px',
-              color: 'var(--color-iris-mid)',
-            }}
-          >
-            Lupa kata sandi?
-          </a>
-        </div>
-
-        <PrimaryButton type="submit" fullWidth style={{ padding: '14px 24px' }}>
-          Masuk
+          {submitting ? 'Memproses...' : 'Masuk'}
         </PrimaryButton>
       </form>
 

@@ -2,55 +2,83 @@
 
 namespace Database\Seeders;
 
-use App\Models\Permission;
-use App\Models\Role;
 use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
-/**
- * Seeder pondasi RBAC sesuai SRS Bagian 3 (Spesifikasi Pengguna dan Peran).
- * Menjalankan: php artisan db:seed --class=RolePermissionSeeder
- */
 class RolePermissionSeeder extends Seeder
 {
     public function run(): void
     {
         $permissions = [
             // POS
-            'pos.order.create', 'pos.order.refund', 'pos.session.open', 'pos.session.close',
+            'pos.order.create' => 'Membuat transaksi penjualan POS',
+            'pos.order.refund' => 'Melakukan refund/retur pesanan',
+            'pos.session.open' => 'Membuka sesi kasir',
+            'pos.session.close' => 'Menutup sesi kasir',
             // Inventory
-            'inventory.view', 'inventory.adjust', 'inventory.purchase',
+            'inventory.view' => 'Melihat stok bahan baku',
+            'inventory.adjust' => 'Menyesuaikan stok bahan baku',
+            'inventory.purchase' => 'Mencatat pembelian stok',
             // HR
-            'hr.shift.manage', 'hr.attendance.view', 'hr.leave.request', 'hr.leave.approve',
+            'hr.shift.manage' => 'Mengatur jadwal shift karyawan',
+            'hr.attendance.view' => 'Melihat laporan absensi',
+            'hr.leave.request' => 'Mengajukan cuti',
+            'hr.leave.approve' => 'Menyetujui pengajuan cuti',
             // Payroll
-            'payroll.view', 'payroll.generate', 'payroll.approve',
+            'payroll.view' => 'Melihat data payroll',
+            'payroll.generate' => 'Menghasilkan payroll',
+            'payroll.approve' => 'Menyetujui pembayaran payroll',
             // Reporting
-            'report.view', 'report.export',
+            'report.view' => 'Melihat laporan',
+            'report.export' => 'Mengekspor laporan',
             // User & Role management
-            'user.manage', 'role.manage', 'audit.view',
+            'user.manage' => 'Mengelola pengguna sistem',
+            'role.manage' => 'Mengelola peran dan izin',
+            'audit.view' => 'Melihat log audit sistem',
         ];
 
-        $permissionModels = collect($permissions)->mapWithKeys(function (string $name) {
-            return [$name => Permission::firstOrCreate(['name' => $name, 'guard_name' => 'web'])];
-        });
+        foreach ($permissions as $name => $description) {
+            Permission::firstOrCreate(
+                ['name' => $name, 'guard_name' => 'web'],
+                ['description' => $description]
+            );
+        }
 
         $roleMatrix = [
-            'cashier' => ['pos.order.create', 'pos.session.open', 'pos.session.close', 'hr.leave.request'],
-            'staff' => ['hr.leave.request'],
-            'manager' => [
-                'pos.order.create', 'pos.order.refund', 'pos.session.open', 'pos.session.close',
-                'inventory.view', 'inventory.adjust', 'inventory.purchase',
-                'hr.shift.manage', 'hr.attendance.view', 'hr.leave.approve',
-                'report.view', 'report.export',
+            'cashier' => [
+                'description' => 'Kasir — staf operasional POS',
+                'permissions' => ['pos.order.create', 'pos.session.open', 'pos.session.close', 'hr.leave.request'],
             ],
-            'finance' => ['payroll.view', 'payroll.generate', 'report.view', 'report.export'],
-            'owner' => $permissions, // akses penuh
+            'staff' => [
+                'description' => 'Staf non-kasir — barista, kitchen, waiter',
+                'permissions' => ['hr.leave.request'],
+            ],
+            'manager' => [
+                'description' => 'Manager outlet — pengelola operasional harian',
+                'permissions' => [
+                    'pos.order.create', 'pos.order.refund', 'pos.session.open', 'pos.session.close',
+                    'inventory.view', 'inventory.adjust', 'inventory.purchase',
+                    'hr.shift.manage', 'hr.attendance.view', 'hr.leave.approve',
+                    'report.view', 'report.export',
+                ],
+            ],
+            'finance' => [
+                'description' => 'Finance — staf keuangan dan payroll',
+                'permissions' => ['payroll.view', 'payroll.generate', 'report.view', 'report.export'],
+            ],
+            'owner' => [
+                'description' => 'Pemilik bisnis — akses penuh ke seluruh sistem',
+                'permissions' => array_keys($permissions),
+            ],
         ];
 
-        foreach ($roleMatrix as $roleName => $rolePermissions) {
-            $role = Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'web']);
-            $role->permissions()->sync(
-                collect($rolePermissions)->map(fn ($p) => $permissionModels[$p]->id)
+        foreach ($roleMatrix as $roleName => $config) {
+            $role = Role::firstOrCreate(
+                ['name' => $roleName, 'guard_name' => 'web'],
+                ['description' => $config['description']]
             );
+            $role->syncPermissions($config['permissions']);
         }
     }
 }

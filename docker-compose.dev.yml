@@ -1,4 +1,12 @@
 services:
+  # Nginx development override to mount dev-default.conf
+  nginx:
+    volumes:
+      - type: bind
+        source: ./nginx/conf.d/dev-default.conf
+        target: /etc/nginx/conf.d/default.conf
+        read_only: true
+
   # Vite dev server dengan volume mount — hot reload tanpa rebuild
   react-app-dev:
     image: node:20-alpine
@@ -15,3 +23,18 @@ services:
     environment:
       - CHOKIDAR_USEPOLLING=1
       - WATCHPACK_POLLING=true
+
+  # Composer — install PHP dependencies into vendor-volume (defined in docker-compose.yml)
+  composer:
+    image: composer:2.8
+    container_name: cafe-composer
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+      - vendor-volume:/app/vendor
+    networks:
+      - cafe-network
+    profiles:
+      - dev
+    command: composer install --no-interaction --prefer-dist --no-dev
+

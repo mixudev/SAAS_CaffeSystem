@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import GhostButton from '../common/GhostButton'
 import PrimaryButton from '../common/PrimaryButton'
+import { useAuth } from '../../contexts/AuthContext'
 
 const navLinks = [
   { label: 'Fitur', href: '#features' },
@@ -10,6 +11,12 @@ const navLinks = [
 ]
 
 export default function Navbar() {
+  const { user, logout } = useAuth()
+
+  const handleLogout = async () => {
+    await logout()
+  }
+
   return (
     <nav
       style={{
@@ -91,16 +98,42 @@ export default function Navbar() {
 
           {/* CTAs */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-12)' }}>
-            <Link to="/login">
-              <GhostButton style={{ padding: '10px 20px', fontSize: '14px' }}>
-                Masuk
-              </GhostButton>
-            </Link>
-            <a href="#cta">
-              <PrimaryButton style={{ padding: '10px 20px', fontSize: '14px' }}>
-                Coba Gratis
-              </PrimaryButton>
-            </a>
+            {user ? (
+              <>
+                <Link to="/dashboard">
+                  <PrimaryButton style={{ padding: '10px 20px', fontSize: '14px' }}>
+                    Dashboard
+                  </PrimaryButton>
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  style={{
+                    padding: '10px 20px',
+                    fontSize: '14px',
+                    border: '1px solid #b32d2d',
+                    borderRadius: 8,
+                    background: '#fff',
+                    color: '#b32d2d',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Keluar
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login">
+                  <GhostButton style={{ padding: '10px 20px', fontSize: '14px' }}>
+                    Masuk
+                  </GhostButton>
+                </Link>
+                <a href="#cta">
+                  <PrimaryButton style={{ padding: '10px 20px', fontSize: '14px' }}>
+                    Coba Gratis
+                  </PrimaryButton>
+                </a>
+              </>
+            )}
           </div>
         </div>
       </div>
